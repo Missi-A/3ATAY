@@ -1,0 +1,89 @@
+name: Collecte 3ATAY
+run-name: ${{ inputs.job_id }}
+
+# Lancé par l'application FLEMME (API GitHub) : chaque lot lit une partie des portails dans ce dépôt public.
+# La tâche (portails) et les résultats sont chiffrés avec le secret JOB_KEY ; rien de personnel n'est ici.
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: Identifiant de la tâche (dossier jobs/<identifiant>/ de la branche jobs)
+        required: true
+      shards:
+        description: Nombre de lots (1 à 20)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - id: matrix
+        env:
+          SHARDS: ${{ inputs.shards }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, sys
+          raw = os.environ["SHARDS"]
+          if not raw.isdigit() or not 1 <= int(raw) <= 20:
+              sys.exit("Nombre de lots invalide")
+          print("matrix=" + json.dumps({"shard": list(range(int(raw)))}))
+          PY
+
+  lot:
+    name: lot ${{ matrix.shard }}
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      JOB_ID: ${{ inputs.job_id }}
+      SHARD: ${{ matrix.shard }}
+      JOB_KEY: ${{ secrets.JOB_KEY }}
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: jobs
+          path: jobs-branch
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Installer les dépendances
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Déchiffrer la tâche
+        run: |
+          mkdir -p work out
+          python -m flemme.shared.sealed_box unseal "jobs-branch/jobs/$JOB_ID/lot-$SHARD.bin" work/job.json
+      - name: Lire les portails du lot
+        run: |
+          set +e
+          python -m flemme.infrastructure.company_and_offer_sources.remote_runner work
+          code=$?
+          if [ "$code" -eq 3 ]; then code=0; fi
+          exit "$code"
+      - name: Chiffrer les résultats
+        if: always()
+        run: |
+          [ -f work/results.jsonl ] && python -m flemme.shared.sealed_box seal work/results.jsonl out/results.bin
+          [ -f work/progress.json ] && python -m flemme.shared.sealed_box seal work/progress.json out/progress.bin
+          exit 0
+      - name: Publier les résultats chiffrés
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lot-${{ matrix.shard }}
+          path: out/
+          retention-days: 2
+          if-no-files-found: ignore

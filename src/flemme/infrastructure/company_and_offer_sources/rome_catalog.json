@@ -1,0 +1,417 @@
+{
+  "version": "ROME 4.0 / fichier v460 de LBA",
+  "verified_on": "2026-10-27",
+  "source": "https://raw.githubusercontent.com/mission-apprentissage/labonnealternance/910832b066380101b119eb336430cb12ed4efc33/server/static/referentiel/unix_referentiel_code_rome_v460_utf8.csv",
+  "source_sha256": "226cd2af473da111205038f60c6de393a21eb72ebe3770b793a78b0458bbfdb6",
+  "note": "Sélection éditoriale fondée sur les libellés France Travail publiés par LBA. Un code ROME est un périmètre métier, pas une preuve du domaine technique de chaque offre. Automatisme/robotique et capteurs/instrumentation partagent des codes plus larges.",
+  "codes": {
+    "M1805": "Développeur / Développeuse informatique",
+    "M1813": "Intégrateur / Intégratrice logiciels métiers",
+    "M1815": "Spécialiste test et validation logiciel ou application",
+    "M1818": "Ingénieur / Ingénieure d'étude informatique",
+    "M1821": "Analyste d'application informatique",
+    "M1827": "Ingénieur / Ingénieure DevOps",
+    "M1831": "Développeur / Développeuse - jeux vidéo",
+    "M1832": "Homologateur / Homologatrice fonctionnel de logiciel",
+    "M1836": "Ingénieur concepteur / Ingénieure conceptrice informatique",
+    "M1837": "Développeur / Développeuse multimédia",
+    "M1841": "Ingénieur informaticien / Ingénieure informaticienne",
+    "M1842": "Qualiticien / Qualiticienne logiciel en informatique",
+    "M1848": "Analyste Concepteur / Conceptrice informatique",
+    "M1852": "Analyste d'étude informatique",
+    "M1853": "Chef / Cheffe de projet étude et développement informatique",
+    "M1855": "Développeur / Développeuse web",
+    "M1858": "Chef / Cheffe de projet TMA - Tierce Maintenance Applicative",
+    "M1859": "Chef / Cheffe de projet maîtrise d'œuvre informatique",
+    "M1861": "Développeur / Développeuse logiciel ou d'application",
+    "M1887": "Product builder no code",
+    "M1889": "Ingénieur / Ingénieure en Intelligence Artificielle (IA)",
+    "M1873": "Spécialiste IA embarquée",
+    "M1405": "Data scientist",
+    "M1419": "Data analyst",
+    "M1811": "Data engineer",
+    "M1824": "Développeur / Développeuse décisionnel - Business Intelligence",
+    "M1851": "Analyste décisionnel - Business Intelligence",
+    "M1868": "Architecte base de données",
+    "M1872": "Consultant décisionnel / Consultante décisionnelle - Business Intelligence",
+    "M1894": "Gestionnaire de base de données",
+    "M1812": "Responsable de la Sécurité des Systèmes d'Information (RSSI)",
+    "M1817": "Administrateur / Administratrice sécurité informatique",
+    "M1819": "Ingénieur / Ingénieure sécurité informatique",
+    "M1833": "Ingénieur / Ingénieure sécurité web",
+    "M1844": "Analyste en cybersécurité",
+    "M1846": "Ingénieur / Ingénieure Cybersécurité Datacenter",
+    "M1856": "Expert / Experte en cybersécurité",
+    "M1863": "Evaluateur / Evaluatrice sécurité des systèmes et produits informatiques",
+    "M1866": "Pentesteur / Pentesteuse",
+    "M1882": "Architecte sécurité informatique",
+    "M1883": "Analyste SOC (Security Operations Center)",
+    "M1884": "Ingénieur / Ingénieure systèmes, réseaux et sécurité informatique",
+    "M1892": "Ingénieur / Ingénieure en informatique embarquée",
+    "M1845": "Architecte IoT - Internet des Objets",
+    "I1318": "Instrumentiste Industriel / Industrielle",
+    "H1504": "Contrôleur / Contrôleuse technique en électricité-électronique",
+    "H1209": "Technicien / Technicienne en électricité et électronique études et développement",
+    "H1227": "Maquettiste en électronique",
+    "H1239": "Technicien / Technicienne en conception électronique, électrique",
+    "H1202": "Dessinateur / Dessinatrice en électricité-électronique",
+    "H1228": "Projeteur / Projeteuse chef de groupe en électricité-électronique",
+    "H1236": "Dessinateur-projeteur / Dessinatrice-projeteuse en électricité-électronique",
+    "H1208": "Automaticien / Automaticienne en bureau d'études",
+    "I1302": "Technicien / Technicienne de maintenance d'installations automatisées",
+    "I1304": "Technicien / Technicienne de maintenance industrielle",
+    "I1310": "Mécanicien / Mécanicienne de maintenance industrielle",
+    "I1305": "Technicien / Technicienne installation et maintenance électronique",
+    "I1309": "Electricien / Electricienne de maintenance",
+    "I1335": "Electromécanicien / Electromécanicienne d'équipements industriels",
+    "F1141": "Ingénieur / Ingénieure études conception électrique",
+    "F1605": "Monteur / Monteuse de réseaux électriques",
+    "H1237": "Ingénieur / Ingénieure énergies renouvelables",
+    "F1136": "Chef / Cheffe de projet éolien",
+    "F1610": "Installateur mainteneur / Installatrice mainteneuse en systèmes solaires, thermiques et photovoltaïques",
+    "I1321": "Technicien / Technicienne de maintenance d'éoliennes",
+    "M1411": "Consultant / Consultante en énergie renouvelable"
+  },
+  "company_category_sources": [
+    "https://www.insee.fr/fr/metadonnees/nafr2/sousClasse/71.12B",
+    "https://www.francetravail.org/files/live/sites/peorg/files/documents/Statistiques-et-analyses/E%26S/es_86_Metiers%20du%20numerique.pdf"
+  ],
+  "company_categories": [
+    {
+      "label": "Études et ingénierie",
+      "domains": [],
+      "naf": [
+        "7112"
+      ],
+      "keywords": [
+        "ingénierie",
+        "études techniques",
+        "bureau d'études",
+        "bureaux d'études"
+      ]
+    },
+    {
+      "label": "Informatique et développement",
+      "domains": [
+        "developpement",
+        "cybersecurite"
+      ],
+      "naf": [
+        "62",
+        "5829",
+        "5821"
+      ],
+      "keywords": [
+        "informatique",
+        "informatiques",
+        "logiciel",
+        "logiciels",
+        "développement web",
+        "programmation informatique",
+        "cybersécurité"
+      ]
+    },
+    {
+      "label": "Intelligence artificielle et données",
+      "domains": [
+        "ia",
+        "donnees"
+      ],
+      "naf": [
+        "6311"
+      ],
+      "keywords": [
+        "intelligence artificielle",
+        "data science",
+        "machine learning",
+        "traitement de données",
+        "analyse de données",
+        "données",
+        "data engineering"
+      ]
+    },
+    {
+      "label": "Électronique et systèmes embarqués",
+      "domains": [
+        "electronique",
+        "embarque",
+        "capteurs"
+      ],
+      "naf": [
+        "261",
+        "2651"
+      ],
+      "keywords": [
+        "électronique",
+        "électroniques",
+        "systèmes embarqués",
+        "informatique embarquée",
+        "capteurs",
+        "instrumentation"
+      ]
+    },
+    {
+      "label": "Automatisme et robotique",
+      "domains": [
+        "automatisme",
+        "robotique"
+      ],
+      "naf": [],
+      "keywords": [
+        "automatisme",
+        "automatismes",
+        "robotique",
+        "automatisation industrielle"
+      ]
+    },
+    {
+      "label": "Électricité et énergie",
+      "domains": [
+        "genie-electrique",
+        "reseaux-electriques",
+        "renouvelables"
+      ],
+      "naf": [
+        "35",
+        "4321"
+      ],
+      "keywords": [
+        "électricité",
+        "électrique",
+        "électriques",
+        "énergie",
+        "énergies",
+        "photovoltaïque",
+        "éolien",
+        "solaire"
+      ]
+    },
+    {
+      "label": "Industrie et maintenance",
+      "domains": [
+        "maintenance"
+      ],
+      "naf": [
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "33"
+      ],
+      "keywords": [
+        "industrie",
+        "industriel",
+        "industrielle",
+        "industrielles",
+        "maintenance industrielle",
+        "fabrication",
+        "manufacture"
+      ]
+    },
+    {
+      "label": "Télécommunications",
+      "domains": [],
+      "naf": [
+        "61"
+      ],
+      "keywords": [
+        "télécommunications",
+        "télécommunication",
+        "télécoms",
+        "télécom",
+        "fibre optique"
+      ]
+    },
+    {
+      "label": "Conseil et services techniques",
+      "domains": [],
+      "naf": [
+        "6202",
+        "7490B"
+      ],
+      "keywords": [
+        "conseil technique",
+        "conseil en systèmes",
+        "conseil en ingénierie",
+        "services techniques",
+        "assistance technique"
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "label": "Informatique",
+      "domains": [
+        {
+          "id": "developpement",
+          "label": "Développement logiciel",
+          "romes": [
+            "M1805",
+            "M1813",
+            "M1815",
+            "M1818",
+            "M1821",
+            "M1827",
+            "M1831",
+            "M1832",
+            "M1836",
+            "M1837",
+            "M1841",
+            "M1842",
+            "M1848",
+            "M1852",
+            "M1853",
+            "M1855",
+            "M1858",
+            "M1859",
+            "M1861",
+            "M1887"
+          ]
+        },
+        {
+          "id": "ia",
+          "label": "Intelligence artificielle",
+          "romes": [
+            "M1889",
+            "M1873",
+            "M1405"
+          ]
+        },
+        {
+          "id": "donnees",
+          "label": "Données",
+          "romes": [
+            "M1405",
+            "M1419",
+            "M1811",
+            "M1824",
+            "M1851",
+            "M1868",
+            "M1872",
+            "M1894"
+          ]
+        },
+        {
+          "id": "cybersecurite",
+          "label": "Cybersécurité",
+          "romes": [
+            "M1812",
+            "M1817",
+            "M1819",
+            "M1833",
+            "M1844",
+            "M1846",
+            "M1856",
+            "M1863",
+            "M1866",
+            "M1882",
+            "M1883",
+            "M1884"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Électronique",
+      "domains": [
+        {
+          "id": "embarque",
+          "label": "Systèmes embarqués",
+          "romes": [
+            "M1892",
+            "M1873",
+            "M1845"
+          ]
+        },
+        {
+          "id": "capteurs",
+          "label": "Capteurs et instrumentation",
+          "romes": [
+            "I1318",
+            "H1504"
+          ]
+        },
+        {
+          "id": "electronique",
+          "label": "Conception électronique",
+          "romes": [
+            "H1209",
+            "H1227",
+            "H1239",
+            "H1202",
+            "H1228",
+            "H1236"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Industrie",
+      "domains": [
+        {
+          "id": "automatisme",
+          "label": "Automatisme",
+          "romes": [
+            "H1208",
+            "I1302"
+          ]
+        },
+        {
+          "id": "robotique",
+          "label": "Robotique",
+          "romes": [
+            "H1208",
+            "I1302"
+          ]
+        },
+        {
+          "id": "maintenance",
+          "label": "Maintenance industrielle",
+          "romes": [
+            "I1304",
+            "I1310",
+            "I1305",
+            "I1309",
+            "I1335"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Énergie",
+      "domains": [
+        {
+          "id": "genie-electrique",
+          "label": "Génie électrique",
+          "romes": [
+            "F1141",
+            "H1202",
+            "H1209",
+            "H1239",
+            "I1309"
+          ]
+        },
+        {
+          "id": "reseaux-electriques",
+          "label": "Réseaux électriques",
+          "romes": [
+            "F1605"
+          ]
+        },
+        {
+          "id": "renouvelables",
+          "label": "Énergies renouvelables",
+          "romes": [
+            "H1237",
+            "F1136",
+            "F1610",
+            "I1321",
+            "M1411"
+          ]
+        }
+      ]
+    }
+  ]
+}
