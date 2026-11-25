@@ -1912,11 +1912,10 @@ def with_proofs(portal):
     return portal
 
 
-def discover_portals(db, portals, progress=None, cancelled=None):
-    """Fiches qui ont un site officiel (niveau confirmé ou probable) mais aucun portail exploitable : lit la page
-    d'accueil du site et suit les liens « Carrières », « Recrutement », « Offres d'emploi » de son périmètre (le site et
-    les plateformes de recrutement qu'il désigne). -> (portails découverts, bilan). Chaque portail garde la page
-    d'accueil et le lien qui prouvent son rattachement (`preuve`). Rien n'est écrit en base.
+def discovery_targets(db, portals):
+    """Sites à examiner pour la découverte : fiches qui ont un site officiel (niveau confirmé ou probable) mais aucun
+    portail exploitable, plus celles dont la vitrine WTTJ connue manque de preuve. -> (sites `{id, name, url}` en
+    dictionnaires simples, identifiants déjà couverts, vitrines à redécouvrir par fiche). Seule étape qui lit la base.
     shortcut: aucune mémoire des sites déjà examinés sans lien ; un site sans lien est relu à chaque découverte."""
     covered = {i for p in portals if not deferred(p) and p["plateforme"] != "icims" and not link_problem(p["url"])
                for i, _ in p["fiches"] if i not in p.get("liens_errones", ())}  # un lien invalide ne couvre pas la fiche
@@ -1927,46 +1926,53 @@ def discover_portals(db, portals, progress=None, cancelled=None):
                 targets.setdefault(i, set()).add(scope)
     rows = db.query("SELECT s.company_id AS id, c.name AS name, s.url AS url FROM company_sites s JOIN companies c "
                     "ON c.id=s.company_id WHERE s.level IN ('confirme','probable') AND s.url<>'' ORDER BY s.company_id")
-    eligible = [r for r in rows if r["id"] not in covered or r["id"] in targets]
-    todo = eligible  # aucune fiche écartée d'office ; chaque requête reste soumise au budget du relevé
-    cancelled = cancelled or (lambda: False)
-    stats = dict(sites=len(todo), pages=0, sans_lien=0, inaccessibles=0, hors_site=0, non_examines=len(eligible) - len(todo))
+    sites = [dict(id=r["id"], name=r["name"], url=r["url"]) for r in rows if r["id"] not in covered or r["id"] in targets]
+    return sites, covered, targets  # aucune fiche écartée d'office ; chaque requête reste soumise au budget du relevé
 
-    lock, seen = threading.Lock(), [0]
 
-    def host(u):
-        return (urlsplit(u).hostname or "").removeprefix("www.")
+def _site_host(url):
+    return (urlsplit(url).hostname or "").removeprefix("www.")
 
-    def one(r):
-        if cancelled():
-            return r, "annulee", "", []
-        status, final, body, _ = get(r["url"], allow=lambda target: host(target) == host(r["url"]))
-        with lock:
-            seen[0] += 1
-            survey_activity.searching(seen[0], len(todo))
-            if progress:
-                progress(seen[0] / max(1, len(todo)), f"{seen[0]}/{len(todo)} sites examinés")
-        if status != 200:
-            return r, "inaccessible", "", []
-        if host(final) != host(r["url"]):  # redirection vers un autre site : hors périmètre
-            return r, "hors_site", final, []
-        # À défaut de page Carrières du site, un lien de recrutement vers un portail d'un autre domaine (portail de groupe,
-        # plateforme) ; jamais un agrégateur ni un réseau social.
-        external = [link for link in designated_links(body, final, host(final)) if link["kind"] in ("ats", "externe")
-                    and (CAREER_TEXT.match(link["texte"]) or OFFER_LIST_TEXT.match(link["texte"]))]
-        return r, "", final, career_links(body, final) or external[:2]
 
+def _examine_site(row, cancelled):
+    if cancelled():
+        return row, "annulee", "", []
+    status, final, body, _ = get(row["url"], allow=lambda target: _site_host(target) == _site_host(row["url"]))
+    if status != 200:
+        return row, "inaccessible", "", []
+    if _site_host(final) != _site_host(row["url"]):  # redirection vers un autre site : hors périmètre
+        return row, "hors_site", final, []
+    # À défaut de page Carrières du site, un lien de recrutement vers un portail d'un autre domaine (portail de groupe,
+    # plateforme) ; jamais un agrégateur ni un réseau social.
+    external = [link for link in designated_links(body, final, _site_host(final)) if link["kind"] in ("ats", "externe")
+                and (CAREER_TEXT.match(link["texte"]) or OFFER_LIST_TEXT.match(link["texte"]))]
+    return row, "", final, career_links(body, final) or external[:2]
+
+
+def examine_site(row, cancelled=None):
+    """Lit la page d'accueil d'un site `{id, name, url}` et y cherche les liens Carrières, sous le budget de requêtes du
+    relevé. -> (site, problème, page d'accueil, liens) ; problème : « », « inaccessible », « hors_site » ou « annulee »."""
+    return _with_request_budget(_examine_site, row, cancelled or (lambda: False))
+
+
+def assemble_discovery(examined, covered, targets):
+    """Portails découverts à partir des sites examinés. Chaque portail garde la page d'accueil et le lien qui prouvent
+    son rattachement (`preuve`). -> (portails découverts, statistiques). Rien n'est écrit en base."""
+    stats = dict(sites=len(examined), pages=0, sans_lien=0, inaccessibles=0, hors_site=0, non_examines=0,
+                 sans_lien_ids=[])  # fiches dont le site répond sans problème mais sans lien (à relire ailleurs au besoin)
     found: dict[str, dict] = {}
-    for r, problem, home, links in pmap(lambda row: _with_request_budget(one, row), todo):
+    for r, problem, home, links in examined:
         stats["inaccessibles"] += problem == "inaccessible"
         stats["hors_site"] += problem == "hors_site"
         stats["sans_lien"] += not problem and not links
+        if not problem and not links:
+            stats["sans_lien_ids"].append(r["id"])
         if r["id"] in covered:  # déjà un portail actif : seule la vitrine WTTJ connue est redécouverte
             links = [x for x in links if wttj_scope(x["url"]) in targets[r["id"]]]
         for link in links:
             # Portail d'un autre hôte de l'organisation (« x.jobs.groupe.fr ») : désigné par le site officiel, son
             # domaine fait foi et le périmètre d'employeur d'un portail de groupe s'applique.
-            sister = not same_site(host_of(link["url"]), host(home)) and not is_ats(host_of(link["url"]))
+            sister = not same_site(host_of(link["url"]), _site_host(home)) and not is_ats(host_of(link["url"]))
             proof = dict(site_officiel=home, lien=link["url"], texte=link["texte"], **({"designation": True} if sister else {}))
             g = found.setdefault(link["url"].rstrip("/"), dict(
                 url=link["url"], plateforme=platform_of(link["url"]), fiches=[], trouve_sur=[home], types=["decouvert"],
@@ -1977,7 +1983,31 @@ def discover_portals(db, portals, progress=None, cancelled=None):
     for g in found.values():
         g["entreprise"] = " / ".join(n for _, n in g["fiches"])
     stats["pages"] = len(found)
+    stats["sans_lien_ids"] = sorted(set(stats["sans_lien_ids"]))
     return list(found.values()), stats
+
+
+def discover_portals(db, portals, progress=None, cancelled=None):
+    """Fiches qui ont un site officiel (niveau confirmé ou probable) mais aucun portail exploitable : lit la page
+    d'accueil du site et suit les liens « Carrières », « Recrutement », « Offres d'emploi » de son périmètre (le site et
+    les plateformes de recrutement qu'il désigne). -> (portails découverts, bilan). Chaque portail garde la page
+    d'accueil et le lien qui prouvent son rattachement (`preuve`). Rien n'est écrit en base.
+    Composition de `discovery_targets`, `examine_site` (réseau, exécutable à distance) et `assemble_discovery`."""
+    todo, covered, targets = discovery_targets(db, portals)
+    cancelled = cancelled or (lambda: False)
+    lock, seen = threading.Lock(), [0]
+
+    def one(row):
+        result = examine_site(row, cancelled)
+        if result[1] != "annulee":
+            with lock:
+                seen[0] += 1
+                survey_activity.searching(seen[0], len(todo))
+                if progress:
+                    progress(seen[0] / max(1, len(todo)), f"{seen[0]}/{len(todo)} sites examinés")
+        return result
+
+    return assemble_discovery(pmap(one, todo), covered, targets)
 
 
 # ---------------------------------------------------------------- portails partagés

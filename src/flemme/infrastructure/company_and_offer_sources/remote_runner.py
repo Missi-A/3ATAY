@@ -1,13 +1,16 @@
 """Lecteur 3ATAY exécuté à part : `python -m flemme.infrastructure.company_and_offer_sources.remote_runner DOSSIER`.
 
-Lit `job.json`, relève les portails avec le même `collect()` que l'application, écrit `results.jsonl` au fil de l'eau
-et `progress.json` chaque seconde. Un fichier `CANCEL` dans le dossier demande l'arrêt.
+Lit `job.json`, relève les portails avec le même `collect()` que l'application (`kind = "portals"`) ou examine des sites
+pour y trouver les pages Carrières (`kind = "discovery"`), écrit `results.jsonl` au fil de l'eau et `progress.json` chaque
+seconde. Un fichier `CANCEL` dans le dossier demande l'arrêt.
 Codes de sortie : 0 terminé, 1 erreur (tâche refusée ou erreur inattendue), 2 annulé, 3 terminé avec portails partiels."""
 
 from __future__ import annotations
 
 import sys
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextvars import copy_context
 from pathlib import Path
 
 from . import collector_job as cj
@@ -15,6 +18,22 @@ from . import company_portal_collector
 
 PARTIAL = ("partiel", "inaccessible")
 HEARTBEAT_SECONDS = 1.0
+
+
+def examine_all(collector, sites, cancelled, results_path: Path, written: dict) -> None:
+    """Examine les sites en parallèle ; une ligne par site dès qu'il est terminé. Un site annulé n'est pas écrit."""
+    with ThreadPoolExecutor(max(1, int(getattr(collector, "POOL", 6)))) as pool:
+        futures = [pool.submit(copy_context().run, collector.examine_site, row, cancelled) for row in sites]
+        try:
+            for future in as_completed(futures):
+                row, problem, home, links = future.result()
+                if problem != "annulee":
+                    cj.append_result(results_path, row["url"], links, {"problem": problem, "home": home}, 1)
+                    written[row["url"]] = 1
+        except BaseException:
+            for future in futures:
+                future.cancel()
+            raise
 
 
 def run(directory: Path, collector=company_portal_collector) -> int:
@@ -55,7 +74,10 @@ def run(directory: Path, collector=company_portal_collector) -> int:
         getattr(collector, "begin_survey", lambda: None)()
         write_progress()
         thread.start()
-        collector.collect(portals, lambda ratio, message: write_progress(), cancelled, checkpoint=checkpoint)
+        if job["kind"] == "discovery":
+            examine_all(collector, portals, cancelled, results_path, written)
+        else:
+            collector.collect(portals, lambda ratio, message: write_progress(), cancelled, checkpoint=checkpoint)
         results = cj.read_results(results_path)
     except Exception as error:  # noqa: BLE001 - jamais de message de l'erreur : il peut citer une page ou une adresse
         stop.set()

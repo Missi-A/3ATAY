@@ -15,6 +15,7 @@ from pathlib import Path
 VERSION = 1
 MAX_BYTES = 200_000_000
 JOB, RESULTS, PROGRESS = "job.json", "results.jsonl", "progress.json"
+KINDS = ("portals", "discovery")  # portails à lire, ou sites dont on cherche les pages Carrières
 JOB_KEYS = ("version", "job_id", "shard", "portals", "previous", "options")
 
 
@@ -54,9 +55,10 @@ def _read_text(path: Path) -> str:
 
 
 def job_bytes(*, job_id: str, portals: list[dict], previous_attempts: dict[str, int], options: dict,
-              shard: tuple[int, int] = (0, 1)) -> bytes:
-    """Contenu de `job.json` (envoyé tel quel, chiffré, à GitHub)."""
-    return json.dumps(dict(version=VERSION, job_id=job_id, shard=list(shard), portals=portals,
+              shard: tuple[int, int] = (0, 1), kind: str = "portals") -> bytes:
+    """Contenu de `job.json` (envoyé tel quel, chiffré, à GitHub). `portals` : les éléments à traiter (portails, ou sites
+    `{id, name, url}` pour `kind="discovery"`), tous munis d'une clé `url`."""
+    return json.dumps(dict(version=VERSION, job_id=job_id, kind=kind, shard=list(shard), portals=portals,
                            previous=previous_attempts, options=options), ensure_ascii=False).encode("utf-8")
 
 
@@ -83,6 +85,9 @@ def read_job(directory: Path) -> dict:
     missing = [key for key in JOB_KEYS if key not in data]
     if missing:
         raise JobFormatError("tâche incomplète : " + ", ".join(missing))
+    data.setdefault("kind", "portals")  # fichier écrit avant l'ajout du champ
+    if data["kind"] not in KINDS:
+        raise JobFormatError(f"type de tâche non pris en charge ({str(data['kind'])[:20]})")
     return data
 
 
